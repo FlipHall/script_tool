@@ -1,0 +1,7 @@
+#! /bin/bash
+
+if [[ $# == 0 ]]; then
+echo -e "\e[0;32m### lack of num to kill ###\e[0m"
+exit 0
+fi
+vncserver -kill :$1

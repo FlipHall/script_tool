@@ -1,0 +1,44 @@
+1、安装adb命令
+（注意如果你的Ubuntu下已经安装了adb 就无需执行该步骤，可以输入：adb ，查看是否安装adb）
+sudo add-apt-repository ppa:nilarimogard/webupd8
+sudo apt-get update
+sudo apt-get install android-tools-adb
+此时，将android设备连接至电脑，执行adb shell会提示“error: device not found”
+紧接着需要解决如何让手机连接电脑能够识别问题。
+ 
+2、将android设备连接至电脑，通过lsusb查看usb设备，如下红色部分对应的就是android设备
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 001 Device 002: ID 8087:0024 Intel Corp. Integrated Rate Matching Hub
+Bus 002 Device 002: ID 8087:0024 Intel Corp. Integrated Rate Matching Hub
+Bus 001 Device 027: ID 1f3a:1002
+Bus 002 Device 003: ID 046d:c077 Logitech, Inc.
+（注意这里一定要确定哪一行对应的是你的连接手机, 否则配置后面会出错的，谨记。。。
+可以将手机连上电脑，打印lsusb,记下，然后断开手机跟电脑连接，打印lsusb，对比两次打印结果， 缺少的那行就是对应的该手机的，先确定端口号）
+ 
+3、创建adb_usb.ini文件，写入id
+（1）第一次配置设备的话，执行（1）步骤就行了
+echo 0x1f3a > ~/.android/adb_usb.ini
+这里0x1f3a是上面手机端口号，用echo是写入文件的，进入该文件会看到0x1f3a
+
+（2）倘若你还第二次配置另一个手机的话，无需执行（1）步骤，如果你Ubuntu安装了gedit软件，可以执行： gedit ~/.android/adb_usb.ini，
+进入文件后，需要换行，然后添加新的手机号，千万别替换以前的哦，否则以前配置的手机就无法识别了）
+ 
+4、添加权限 
+sudo vim /etc/udev/rules.d/70-android.rules
+加入以下内容，注意红色部分对应的就是lsusb得到的id
+SUBSYSTEM=="usb", ATTRS{idVendor}=="1f3a", ATTRS{idProduct}=="1002",MODE="0666"
+(注意这里，vim 进行编辑文件的，该文件一般无法保存，编辑时候采用A键, 编辑完成切换用 esc , 退出操作，用大写 ZZ， 如果第二次配置另一个手机的话，也要换行添加以上语句，千万不要替换。)
+ 
+5、重启USB服务
+sudo chmod a+rx /etc/udev/rules.d/70-android.rules
+sudo service udev restart
+ 
+6. 重启adb服务，adb devices有设备说明adb安装成功
+(注意这里需要在 root权限下去 adb start-server，先切换到root下)
+adb kill-server
+sudo adb start-server
+adb devices
+
+List of devices attached
+815105148800601fe42     device
